@@ -1,0 +1,22 @@
+{
+  "name": "libadb.ts",
+  "version": "0.1.0",
+  "description": "Library for connecting to Android devices over ADB",
+  "main": "index.js",
+  "repository": "https://github.com/cybojenix/libadb.ts",
+  "author": "Anthony King",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint 'src/**'",
+    "fix": "yarn lint --fix"
+  },
+  "devDependencies": {
+    "@types/w3c-web-usb": "*",
+    "@typescript-eslint/eslint-plugin": "*",
+    "eslint": "*",
+    "eslint-config-airbnb-base": "*",
+    "eslint-plugin-import": "*",
+    "typescript": "*"
+  }
+}
