@@ -10,7 +10,11 @@ export default class WebUSBTransport {
   }
 
   public static async open(): Promise<WebUSBTransport> {
-    const device = await navigator.usb.requestDevice();
+    const device = await navigator.usb.requestDevice({
+      filters: [
+
+      ],
+    });
     return new this(device);
   }
 }
