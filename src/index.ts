@@ -1,8 +1,10 @@
-import Transport from './transport/webusb';
-
+import Transport from './transport/webusb/index';
 
 export default class LibADB {
   private transport?: Transport;
+
+  public static Transport = Transport;
+
 
   public async start(): Promise<void> {
     console.log('starting');
