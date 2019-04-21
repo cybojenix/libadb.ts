@@ -8,7 +8,7 @@ export default class Connection {
 
   private sendEndpoint: number;
 
-  private constructor(device, readEndpoint: number, sendEndpoint: number) {
+  private constructor(device: USBDevice, readEndpoint: number, sendEndpoint: number) {
     this.device = device;
     this.readEndpoint = readEndpoint;
     this.sendEndpoint = sendEndpoint;
@@ -25,7 +25,7 @@ export default class Connection {
     });
   }
 
-  public async read(length): Promise<DataView> {
+  public async read(length: number): Promise<DataView> {
     const result = await this.device.transferIn(this.readEndpoint, length);
     return result.data || new DataView(new ArrayBuffer(0));
   }
