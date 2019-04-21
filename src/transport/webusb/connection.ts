@@ -15,6 +15,7 @@ export default class Connection {
   }
 
   public static async connect(device: USBDevice): Promise<Connection> {
+    if (!device.opened) await device.open();
     const endpoints = await configureForADB(device);
     return new this(device, endpoints.read, endpoints.send);
   }
