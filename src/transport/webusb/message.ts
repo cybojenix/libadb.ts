@@ -74,13 +74,12 @@ export default class Message {
     view.setUint32(4, this.arg0, isLittleEndian);
     view.setUint32(8, this.arg1, isLittleEndian);
     view.setUint32(12, this.data.byteLength, isLittleEndian);
+    view.setUint32(20, this.magic, isLittleEndian);
 
     if (useChecksum) {
       view.setUint32(16, this.checksum, isLittleEndian);
-      view.setUint32(20, this.magic, isLittleEndian);
-    } else {
-      view.setUint32(16, this.magic, isLittleEndian);
     }
+
     return view;
   }
 }
@@ -111,7 +110,7 @@ export class Response {
 
   public static async read(transport: Reader): Promise<Response> {
     const view = await transport.read();
-    const unpacked = this.unpack(view, transport.useChecksum);
+    const unpacked = this.unpack(view);
     return new this(
       WIRE_TO_COMMAND[unpacked.command],
       unpacked.arg0,
@@ -121,7 +120,7 @@ export class Response {
     );
   }
 
-  private static unpack(view: Header, useChecksum = true): UnpackedHeader {
+  private static unpack(view: Header): UnpackedHeader {
     const isLittleEndian = true;
 
     return {
@@ -129,8 +128,9 @@ export class Response {
       arg0: view.getUint32(4, isLittleEndian),
       arg1: view.getUint32(8, isLittleEndian),
       dataLength: view.getUint32(12, isLittleEndian),
+      // we don't need to check the checksum, and it isn't available on modern implementations
       //checksum: useChecksum ? view.getUint32(16, isLittleEndian) : undefined,
-      magic: view.getUint32(useChecksum ? 20 : 16, isLittleEndian),
+      magic: view.getUint32(20, isLittleEndian),
     };
   }
 
