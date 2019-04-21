@@ -8,7 +8,8 @@ export default class LibADB {
 
   public async start(): Promise<void> {
     console.log('starting');
-    await this.getTransport();
+    const transport = await this.getTransport();
+    await transport.connect();
   }
 
   private async getTransport(): Promise<Transport> {
