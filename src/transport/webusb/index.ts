@@ -2,15 +2,14 @@
 // available in recent versions of Chrome
 
 import * as constants from './constants';
-import { DEFAULT_MAX_BYTES, ADB_USB_DEVICE_FILTER } from './constants';
-import configureForADB from './configureForADB';
+import { DEFAULT_MAX_BYTES } from './constants';
 import { Reader, Sender } from './interface';
 import Message, { Response } from './message';
 import AuthHandshake from './authHandshake';
-
+import Connection from './connection';
 
 export default class WebUSBTransport implements Reader, Sender {
-  public device: USBDevice;
+  public connection: Connection;
 
   public static Message = Message;
 
@@ -20,40 +19,25 @@ export default class WebUSBTransport implements Reader, Sender {
 
   public static AuthHandshake = AuthHandshake;
 
-  private endpoint: {
-    read: number;
-    send: number;
-  } = { read: -1, send: -1 };
-
   private maxBytes = DEFAULT_MAX_BYTES;
 
   public useChecksum = true;
 
-  public constructor(device: USBDevice) {
-    this.device = device;
-    this.configure();
+  public constructor(connection: Connection) {
+    this.connection = connection;
   }
 
   public static async open(): Promise<WebUSBTransport> {
-    const device = await navigator.usb.requestDevice({
-      filters: [ADB_USB_DEVICE_FILTER],
-    });
-    await device.open();
-    return new this(device);
+    const device = await Connection.findAdbDevice();
+    return new this(await Connection.connect(device));
   }
 
   public async read(length?: number): Promise<DataView> {
-    // TODO: we need to do chunking for when we request over our max byte limit
-    const result = await this.device.transferIn(this.endpoint.read, length || this.maxBytes);
-    return result.data || new DataView(new ArrayBuffer(0));
+    return this.connection.read(length || this.maxBytes);
   }
 
   public async send(buffer: BufferSource): Promise<void> {
-    await this.device.transferOut(this.endpoint.send, buffer);
-  }
-
-  private async configure(): Promise<void> {
-    this.endpoint = await configureForADB(this.device);
+    return this.connection.send(buffer);
   }
 
   public configureForDevice(connectionResponse: Response): void {
