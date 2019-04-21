@@ -17,8 +17,6 @@ export default class WebUSBTransport implements Reader, Sender {
 
   public static Constants = constants;
 
-  public static AuthHandshake = AuthHandshake;
-
   private maxBytes = DEFAULT_MAX_BYTES;
 
   public useChecksum = true;
@@ -30,6 +28,24 @@ export default class WebUSBTransport implements Reader, Sender {
   public static async open(): Promise<WebUSBTransport> {
     const device = await Connection.findAdbDevice();
     return new this(await Connection.connect(device));
+  }
+
+  public async connect(): Promise<void> {
+    const openMessage = new Message(
+      constants.COMMANDS.CONNECTION,
+      constants.VERSION.CURRENT,
+      this.maxBytes,
+      'host::LibADB.ts\0',
+    );
+    await openMessage.send(this);
+    let connectionResponse = await Response.read(this);
+    if (connectionResponse.command === constants.COMMANDS.AUTH) {
+      const auth = new AuthHandshake(this);
+      connectionResponse = await auth.handle(connectionResponse);
+    }
+    if (connectionResponse.command === constants.COMMANDS.CONNECTION) {
+      this.configureForDevice(connectionResponse);
+    }
   }
 
   public async read(length?: number): Promise<DataView> {
