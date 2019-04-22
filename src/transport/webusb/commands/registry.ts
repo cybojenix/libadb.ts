@@ -3,6 +3,7 @@ import BaseCommand from './base';
 type defaultArg0Name = 'default';
 type storedArg0 = defaultArg0Name | number;
 const defaultArg0Name: defaultArg0Name = 'default';
+const fallbackCommand = BaseCommand;
 
 interface Store {
   [commandName: string]: {
@@ -11,7 +12,7 @@ interface Store {
   };
 }
 
-class Registry {
+export class Registry {
   private store: Store = {};
 
   public register<T extends typeof BaseCommand>(
@@ -39,11 +40,11 @@ class Registry {
     { commandName, arg0 }: { commandName: string; arg0?: number },
   ): typeof BaseCommand {
     const commands = this.store[commandName];
-    if (!commands) throw Error(`Command not found: ${commandName}`);
+    if (!commands) return fallbackCommand;
 
     const storedArg0 = Registry.constructStoredArg0(arg0);
     const command = commands[storedArg0] || commands[defaultArg0Name];
-    if (!command) throw Error(`Command not found: {commandName: ${commandName}, arg0: ${arg0}`);
+    if (!command) return fallbackCommand;
     return command;
   }
 
@@ -56,11 +57,10 @@ class Registry {
     command: T,
   ): T {
     const storedArg0 = Registry.constructStoredArg0(arg0);
+    this.store[commandName] = this.store[commandName] || {};
     this.store[commandName][storedArg0] = command;
     return command;
   }
 }
 
-
-const registry = new Registry();
-export default registry;
+export const commandRegistry = new Registry();

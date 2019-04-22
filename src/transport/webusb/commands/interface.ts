@@ -4,5 +4,3 @@ export interface Command {
   arg1: number;
   data?: ArrayBuffer | string;
 }
-
-export const stub = '';
