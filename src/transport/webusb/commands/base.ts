@@ -7,7 +7,7 @@ export default class BaseCommand implements Command {
 
   public static arg1: number | undefined;
 
-  public static data: string | ArrayBuffer | undefined;
+  public static data: string | ArrayBuffer | DataView | undefined;
 
   public command: string;
 
@@ -15,7 +15,7 @@ export default class BaseCommand implements Command {
 
   public arg1: number;
 
-  public data: string | ArrayBuffer;
+  public data: DataView;
 
   public constructor({
     command,
@@ -26,7 +26,7 @@ export default class BaseCommand implements Command {
     command?: string;
     arg0?: number;
     arg1?: number;
-    data?: string | ArrayBuffer;
+    data?: string | ArrayBuffer | DataView;
   }) {
     const args = this.buildArgs({
       command,
@@ -49,8 +49,8 @@ export default class BaseCommand implements Command {
     command?: string;
     arg0?: number;
     arg1?: number;
-    data?: string | ArrayBuffer;
-  }): { command: string; arg0: number; arg1: number; data: string | ArrayBuffer } {
+    data?: string | ArrayBuffer | DataView;
+  }): { command: string; arg0: number; arg1: number; data: DataView } {
     const constructor = this.constructor as unknown as BaseCommand;
     const finalCommand = command === undefined ? constructor.command : command;
     if (finalCommand === undefined) throw TypeError('{command} not provided');
@@ -65,7 +65,24 @@ export default class BaseCommand implements Command {
       command: finalCommand,
       arg0: finalArg0,
       arg1: finalArg1,
-      data: finalData,
+      data: BaseCommand.dataToDataView(finalData),
     };
+  }
+
+  private static dataToDataView(data: string | ArrayBuffer | DataView): DataView {
+    if (typeof data === 'string') {
+      return new DataView(new TextEncoder().encode(data));
+    }
+    if (data instanceof ArrayBuffer) {
+      return new DataView(data);
+    }
+    if (data instanceof DataView) {
+      return data;
+    }
+    throw Error(`Unexpected data type provided: ${typeof data}: ${data}`);
+  }
+
+  public get text(): string {
+    return new TextDecoder().decode(this.data);
   }
 }
