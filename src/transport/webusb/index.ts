@@ -9,6 +9,7 @@ import AuthHandshake from './authHandshake';
 import Connection from './connection';
 import { AuthToken, AuthSignature, AuthRsaPublicKey } from './commands/auth';
 import { commandRegistry } from './commands/registry';
+import { Command } from './commands/interface';
 
 export default class WebUSBTransport implements Reader, Sender {
   public connection: Connection;
@@ -46,12 +47,12 @@ export default class WebUSBTransport implements Reader, Sender {
       'host::LibADB.ts\0',
     );
     await openMessage.send(this);
-    let connectionResponse = await Response.read(this);
-    if (connectionResponse.command === constants.COMMANDS.AUTH) {
+    let connectionResponse = (await Response.read(this)).toCommand();
+    if (connectionResponse instanceof AuthToken) {
       const auth = new AuthHandshake(this);
       connectionResponse = await auth.handle(connectionResponse);
     }
-    if (connectionResponse.command === constants.COMMANDS.CONNECTION) {
+    if (connectionResponse.commandName === constants.COMMANDS.CONNECTION) {
       this.configureForDevice(connectionResponse);
     }
   }
@@ -64,9 +65,10 @@ export default class WebUSBTransport implements Reader, Sender {
     return this.connection.send(buffer);
   }
 
-  public configureForDevice(connectionResponse: Response): void {
-    if (connectionResponse.command !== constants.COMMANDS.CONNECTION) return;
+  public configureForDevice(connectionResponse: Command): void {
+    if (connectionResponse.commandName !== constants.COMMANDS.CONNECTION) return;
     this.useChecksum = connectionResponse.arg0 >= constants.VERSION.NO_CHECKSUMS_FROM;
     this.maxBytes = connectionResponse.arg1;
   }
+
 }

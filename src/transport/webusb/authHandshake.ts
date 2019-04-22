@@ -1,13 +1,8 @@
 import AdbMessage, { Response } from './message';
 import { COMMANDS } from './constants';
 import { Sender, Reader } from './interface';
-import { AuthToken, AuthRsaPublicKey } from './commands/auth';
-
-const enum AUTH_SUBCOMMANDS {
-  AUTH_TOKEN = 1,
-  AUTH_SIGNATURE = 2,
-  AUTH_RSAPUBLICKEY = 3,
-}
+import { AuthToken, AuthRsaPublicKey, AuthSignature } from './commands/auth';
+import { Command } from './commands/interface';
 
 export default class AuthHandshake {
   public transport: Reader & Sender;
@@ -18,16 +13,8 @@ export default class AuthHandshake {
     this.transport = transport;
   }
 
-  public async handle(authResponse: Response): Promise<Response> {
-    if (
-      authResponse.command !== COMMANDS.AUTH
-      || authResponse.arg0 !== AUTH_SUBCOMMANDS.AUTH_TOKEN
-    ) {
-      console.log('not expected: ', authResponse);
-      throw Error;
-    }
-
-    let response = await this.trySignedToken(authResponse);
+  public async handle(authTokenCommand: AuthToken): Promise<Command> {
+    let response = await this.trySignedToken(authTokenCommand);
     if (AuthHandshake.isConnected(response)) {
       console.log('hackervoice:', "we're in");
       return response;
@@ -44,25 +31,25 @@ export default class AuthHandshake {
     throw Error;
   }
 
-  private async trySignedToken(authResponse: Response): Promise<Response> {
+  private async trySignedToken(authResponse: AuthToken): Promise<Command> {
     const rsaKey = await this.getRsaKey();
     const signedToken = await window.crypto.subtle.sign(
       rsaKey.privateKey.algorithm.name,
       rsaKey.privateKey,
-      authResponse.rawData.buffer,
+      authResponse.data,
     );
-    const signatureMessage = AdbMessage.fromCommand(new AuthToken({ data: signedToken }));
+    const signatureMessage = AdbMessage.fromCommand(new AuthSignature({ data: signedToken }));
     await signatureMessage.send(this.transport);
 
-    return Response.read(this.transport);
+    return (await Response.read(this.transport)).toCommand();
   }
 
-  private async authoriseKey(): Promise<Response> {
+  private async authoriseKey(): Promise<Command> {
     const message = AdbMessage.fromCommand(
       new AuthRsaPublicKey({ data: `${await this.getPubKeyB64()}\0` }),
     );
     message.send(this.transport);
-    return Response.read(this.transport);
+    return (await Response.read(this.transport)).toCommand();
   }
 
   private async getRsaKey(): Promise<CryptoKeyPair> {
@@ -95,7 +82,7 @@ export default class AuthHandshake {
     );
   }
 
-  private static isConnected(response: Response): boolean {
-    return response.command === COMMANDS.CONNECTION;
+  private static isConnected(command: Command): boolean {
+    return command.commandName === COMMANDS.CONNECTION;
   }
 }

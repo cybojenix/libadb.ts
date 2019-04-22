@@ -29,7 +29,7 @@ export default class Message {
 
   private data: DataView;
 
-  public constructor(command: string, arg0: number, arg1: number, data: ArrayBuffer | string = '') {
+  public constructor(command: string, arg0: number, arg1: number, data: ArrayBuffer | DataView | string = '') {
     this.command = WIRE_COMMANDS[command];
     this.magic = this.command ^ 0xffffffff;
     this.arg0 = arg0;
@@ -37,14 +37,16 @@ export default class Message {
 
     if (typeof data === 'string') {
       this.data = new DataView(new TextEncoder().encode(data).buffer);
-    } else {
+    } else if (data instanceof ArrayBuffer) {
       this.data = new DataView(data);
+    } else {
+      this.data = data;
     }
   }
 
   public static fromCommand(command: Command): Message {
     return new this(
-      command.command, command.arg0, command.arg1, command.data,
+      command.commandName, command.arg0, command.arg1, command.data,
     );
   }
 
@@ -121,7 +123,7 @@ export class Response {
       { commandName: this.command, arg0: this.arg0 },
     );
     return new CommandConstruct({
-      command: this.command,
+      commandName: this.command,
       arg0: this.arg0,
       arg1: this.arg1,
       data: this.rawData.buffer,

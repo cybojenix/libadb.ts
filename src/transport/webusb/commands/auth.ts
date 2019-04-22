@@ -10,7 +10,7 @@ const enum AuthSubcommands {
 
 @commandRegistry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.Token })
 export class AuthToken extends BaseCommand {
-  public static command = COMMANDS.AUTH;
+  public static commandName = COMMANDS.AUTH;
 
   public static arg0 = AuthSubcommands.Token;
 
@@ -19,7 +19,7 @@ export class AuthToken extends BaseCommand {
 
 @commandRegistry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.Signature })
 export class AuthSignature extends BaseCommand {
-  public static command = COMMANDS.AUTH;
+  public static commandName = COMMANDS.AUTH;
 
   public static arg0 = AuthSubcommands.Signature;
 
@@ -28,7 +28,7 @@ export class AuthSignature extends BaseCommand {
 
 @commandRegistry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.RsaPublicKey })
 export class AuthRsaPublicKey extends BaseCommand {
-  public static command = COMMANDS.AUTH;
+  public static commandName = COMMANDS.AUTH;
 
   public static arg0 = AuthSubcommands.RsaPublicKey;
 

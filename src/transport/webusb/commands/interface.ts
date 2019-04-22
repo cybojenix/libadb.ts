@@ -1,5 +1,5 @@
 export interface Command {
-  command: string;
+  commandName: string;
   arg0: number;
   arg1: number;
   data: DataView;
