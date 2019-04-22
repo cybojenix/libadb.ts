@@ -1,5 +1,6 @@
 import { COMMANDS } from '../constants';
 import { Command } from './interface';
+import registry from './registry';
 
 const enum AuthSubcommands {
   Token = 1,
@@ -7,6 +8,7 @@ const enum AuthSubcommands {
   RsaPublicKey = 3,
 }
 
+@registry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.Token })
 export class AuthToken implements Command {
   public command = COMMANDS.AUTH;
 
@@ -21,6 +23,7 @@ export class AuthToken implements Command {
   }
 }
 
+@registry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.Signature })
 export class AuthSignature implements Command {
   public command = COMMANDS.AUTH;
 
@@ -35,6 +38,7 @@ export class AuthSignature implements Command {
   }
 }
 
+@registry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.RsaPublicKey })
 export class AuthRsaPublicKey implements Command {
   public command = COMMANDS.AUTH;
 
