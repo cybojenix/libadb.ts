@@ -1,46 +1,43 @@
-import { Command } from './interface';
+import BaseCommand from './base';
 
 type defaultArg0Name = 'default';
 type storedArg0 = defaultArg0Name | number;
 const defaultArg0Name: defaultArg0Name = 'default';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CommandSignature = any;
-
 interface Store {
   [commandName: string]: {
-    [defaultArg0Name]: { new(o?: CommandSignature): Command };
-    [arg0: number]: { new(o?: CommandSignature): Command };
+    [defaultArg0Name]: typeof BaseCommand;
+    [arg0: number]: typeof BaseCommand;
   };
 }
 
 class Registry {
   private store: Store = {};
 
-  public register<T extends Command>(
+  public register<T extends typeof BaseCommand>(
     { commandName, arg0 }: { commandName: string; arg0?: number },
-    command: { new(o?: CommandSignature): T },
+    command: T,
   ): T;
 
   public register(
     { commandName, arg0 }: { commandName: string; arg0?: number },
-  ): <T extends Command>(constructor: { new(o?: CommandSignature): T }) => { new(o?: CommandSignature): T };
+  ): <T extends typeof BaseCommand>(constructor: T) => T;
 
-  public register<T extends Command>(
+  public register<T extends typeof BaseCommand>(
     { commandName, arg0 }: { commandName: string; arg0?: number },
-    command?: { new(o?: CommandSignature): T },
-  ): { new(o?: CommandSignature): T } | (<T extends Command>(constructor: { new(o?: CommandSignature): T }) => { new(o?: CommandSignature): T }) {
+    command?: T,
+  ): T | (<T extends typeof BaseCommand>(constructor: T) => T) {
     if (command) {
       return this.storeCommand({ commandName, arg0 }, command);
     }
     return (
-      <T extends Command>(constructor: { new(o?: CommandSignature): T }): { new(o?: CommandSignature): T } => this.storeCommand({ commandName, arg0 }, constructor)
+      <T extends typeof BaseCommand>(constructor: T): T => this.storeCommand({ commandName, arg0 }, constructor)
     );
   }
 
   public retrieve(
     { commandName, arg0 }: { commandName: string; arg0?: number },
-  ): { new(o?: CommandSignature): Command } {
+  ): typeof BaseCommand {
     const commands = this.store[commandName];
     if (!commands) throw Error(`Command not found: ${commandName}`);
 
@@ -54,10 +51,10 @@ class Registry {
     return (arg0 === undefined) ? defaultArg0Name : arg0;
   }
 
-  private storeCommand<T extends Command>(
+  private storeCommand<T extends typeof BaseCommand>(
     { commandName, arg0 }: { commandName: string; arg0?: number },
-    command: { new(o?: CommandSignature): T },
-  ): { new(o?: CommandSignature): T } {
+    command: T,
+  ): T {
     const storedArg0 = Registry.constructStoredArg0(arg0);
     this.store[commandName][storedArg0] = command;
     return command;
