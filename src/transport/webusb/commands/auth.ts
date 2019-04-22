@@ -1,6 +1,5 @@
 import { COMMANDS } from '../constants';
-import { Command } from './interface';
-import registry from './registry';
+import BaseCommand from './base';
 
 const enum AuthSubcommands {
   Token = 1,
@@ -8,47 +7,26 @@ const enum AuthSubcommands {
   RsaPublicKey = 3,
 }
 
-@registry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.Token })
-export class AuthToken implements Command {
-  public command = COMMANDS.AUTH;
+export class AuthToken extends BaseCommand {
+  public static command = COMMANDS.AUTH;
 
-  public arg0 = AuthSubcommands.Token;
+  public static arg0 = AuthSubcommands.Token;
 
-  public arg1 = 0;
-
-  public data: ArrayBuffer;
-
-  public constructor({ data }: { data: ArrayBuffer }) {
-    this.data = data;
-  }
+  public static arg1 = 0;
 }
 
-@registry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.Signature })
-export class AuthSignature implements Command {
-  public command = COMMANDS.AUTH;
+export class AuthSignature extends BaseCommand {
+  public static command = COMMANDS.AUTH;
 
-  public arg0 = AuthSubcommands.Signature;
+  public static arg0 = AuthSubcommands.Signature;
 
-  public arg1 = 0;
-
-  public data: ArrayBuffer;
-
-  public constructor({ data }: { data: ArrayBuffer }) {
-    this.data = data;
-  }
+  public static arg1 = 0;
 }
 
-@registry.register({ commandName: COMMANDS.AUTH, arg0: AuthSubcommands.RsaPublicKey })
-export class AuthRsaPublicKey implements Command {
-  public command = COMMANDS.AUTH;
+export class AuthRsaPublicKey extends BaseCommand {
+  public static command = COMMANDS.AUTH;
 
-  public arg0 = AuthSubcommands.RsaPublicKey;
+  public static arg0 = AuthSubcommands.RsaPublicKey;
 
-  public arg1 = 0;
-
-  public data: ArrayBuffer | string;
-
-  public constructor({ data }: { data: ArrayBuffer | string }) {
-    this.data = data;
-  }
+  public static arg1 = 0;
 }
