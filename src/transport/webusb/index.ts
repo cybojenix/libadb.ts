@@ -7,6 +7,8 @@ import { Reader, Sender } from './interface';
 import Message, { Response } from './message';
 import AuthHandshake from './authHandshake';
 import Connection from './connection';
+import { AuthToken, AuthSignature, AuthRsaPublicKey } from './commands/auth';
+import { commandRegistry } from './commands/registry';
 
 export default class WebUSBTransport implements Reader, Sender {
   public connection: Connection;
@@ -16,6 +18,12 @@ export default class WebUSBTransport implements Reader, Sender {
   public static Response = Response;
 
   public static Constants = constants;
+
+  public static Commands = {
+    AuthToken, AuthSignature, AuthRsaPublicKey,
+  }
+
+  public static commandRegistry = commandRegistry;
 
   private maxBytes = DEFAULT_MAX_BYTES;
 

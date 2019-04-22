@@ -2,6 +2,7 @@
 import { WIRE_COMMANDS, WIRE_TO_COMMAND } from './constants';
 import { Reader, Sender } from './interface';
 import { Command } from './commands/interface';
+import { commandRegistry } from './commands/registry';
 
 // strictly speaking, this is Uint32Array<6>.
 type Header = DataView;
@@ -113,6 +114,18 @@ export class Response {
     this.magic = magic;
     this.rawData = rawData;
     this.data = new TextDecoder().decode(rawData);
+  }
+
+  public toCommand(): Command {
+    const CommandConstruct = commandRegistry.retrieve(
+      { commandName: this.command, arg0: this.arg0 },
+    );
+    return new CommandConstruct({
+      command: this.command,
+      arg0: this.arg0,
+      arg1: this.arg1,
+      data: this.rawData.buffer,
+    });
   }
 
   public static async read(transport: Reader): Promise<Response> {
