@@ -28,7 +28,7 @@ export default class BaseCommand implements Command {
     arg1?: number;
     data?: string | ArrayBuffer;
   }) {
-    const args = BaseCommand.buildArgs({
+    const args = this.buildArgs({
       command,
       arg0,
       arg1,
@@ -40,7 +40,7 @@ export default class BaseCommand implements Command {
     this.data = args.data;
   }
 
-  private static buildArgs({
+  public buildArgs({
     command,
     arg0,
     arg1,
@@ -51,14 +51,15 @@ export default class BaseCommand implements Command {
     arg1?: number;
     data?: string | ArrayBuffer;
   }): { command: string; arg0: number; arg1: number; data: string | ArrayBuffer } {
-    const finalCommand = command === undefined ? this.command : command;
+    const constructor = this.constructor as unknown as BaseCommand;
+    const finalCommand = command === undefined ? constructor.command : command;
     if (finalCommand === undefined) throw TypeError('{command} not provided');
-    const finalArg0 = arg0 === undefined ? this.arg0 : arg0;
+    const finalArg0 = arg0 === undefined ? constructor.arg0 : arg0;
     if (finalArg0 === undefined) throw TypeError('{arg0} not provided');
-    const finalArg1 = arg1 === undefined ? this.arg1 : arg1;
+    const finalArg1 = arg1 === undefined ? constructor.arg1 : arg1;
     if (finalArg1 === undefined) throw TypeError('{arg1} not provided');
-    const finalData = data === undefined ? this.data : data;
-    if (finalArg0 === undefined) throw TypeError('{data} not provided');
+    const finalData = data === undefined ? constructor.data : data;
+    if (finalData === undefined) throw TypeError('{data} not provided');
 
     return {
       command: finalCommand,
