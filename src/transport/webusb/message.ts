@@ -1,5 +1,5 @@
 /* eslint-disable no-bitwise */
-import { WIRE_COMMANDS, WIRE_TO_COMMAND } from './constants';
+import { WIRE_COMMAND_IDS, WIRE_TO_COMMAND_NAME } from './constants';
 import { Reader, Sender } from './interface';
 import { Command } from './commands/interface';
 import { commandRegistry } from './commands/registry';
@@ -10,7 +10,7 @@ type Header = DataView;
 // strictly speaking, these are all Uint32, however JS can't handle that.
 // We never need to read the checksum, only write it for legacy implementations
 type UnpackedHeader = {
-  command: number;
+  commandID: number;
   arg0: number;
   arg1: number;
   dataLength: number;
@@ -19,7 +19,7 @@ type UnpackedHeader = {
 }
 
 export default class Message {
-  private command: number;
+  private commandID: number;
 
   private magic: number;
 
@@ -29,9 +29,9 @@ export default class Message {
 
   private data: DataView;
 
-  public constructor(command: string, arg0: number, arg1: number, data: ArrayBuffer | DataView | string = '') {
-    this.command = WIRE_COMMANDS[command];
-    this.magic = this.command ^ 0xffffffff;
+  public constructor(commandName: string, arg0: number, arg1: number, data: ArrayBuffer | DataView | string = '') {
+    this.commandID = WIRE_COMMAND_IDS[commandName];
+    this.magic = this.commandID ^ 0xffffffff;
     this.arg0 = arg0;
     this.arg1 = arg1;
 
@@ -80,7 +80,7 @@ export default class Message {
     const view = new DataView(buffer);
     const isLittleEndian = true;
 
-    view.setUint32(0, this.command, isLittleEndian);
+    view.setUint32(0, this.commandID, isLittleEndian);
     view.setUint32(4, this.arg0, isLittleEndian);
     view.setUint32(8, this.arg1, isLittleEndian);
     view.setUint32(12, this.data.byteLength, isLittleEndian);
@@ -95,7 +95,7 @@ export default class Message {
 }
 
 export class Response {
-  public command: string;
+  public commandName: string;
 
   public arg0: number;
 
@@ -108,9 +108,9 @@ export class Response {
   public data: string;
 
   private constructor(
-    command: string, arg0: number, arg1: number, magic: number, rawData: DataView,
+    commandName: string, arg0: number, arg1: number, magic: number, rawData: DataView,
   ) {
-    this.command = command;
+    this.commandName = commandName;
     this.arg0 = arg0;
     this.arg1 = arg1;
     this.magic = magic;
@@ -120,10 +120,10 @@ export class Response {
 
   public toCommand(): Command {
     const CommandConstruct = commandRegistry.retrieve(
-      { commandName: this.command, arg0: this.arg0 },
+      { commandName: this.commandName, arg0: this.arg0 },
     );
     return new CommandConstruct({
-      commandName: this.command,
+      commandName: this.commandName,
       arg0: this.arg0,
       arg1: this.arg1,
       data: this.rawData.buffer,
@@ -134,7 +134,7 @@ export class Response {
     const view = await transport.read();
     const unpacked = this.unpack(view);
     return new this(
-      WIRE_TO_COMMAND[unpacked.command],
+      WIRE_TO_COMMAND_NAME[unpacked.commandID],
       unpacked.arg0,
       unpacked.arg1,
       unpacked.magic,
@@ -146,7 +146,7 @@ export class Response {
     const isLittleEndian = true;
 
     return {
-      command: view.getUint32(0, isLittleEndian),
+      commandID: view.getUint32(0, isLittleEndian),
       arg0: view.getUint32(4, isLittleEndian),
       arg1: view.getUint32(8, isLittleEndian),
       dataLength: view.getUint32(12, isLittleEndian),

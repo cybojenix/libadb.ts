@@ -41,7 +41,7 @@ export default class WebUSBTransport implements Reader, Sender {
 
   public async connect(): Promise<void> {
     const openMessage = new Message(
-      constants.COMMANDS.CONNECTION,
+      constants.COMMAND_NAME.CONNECTION,
       constants.VERSION.CURRENT,
       this.maxBytes,
       'host::LibADB.ts\0',
@@ -52,7 +52,7 @@ export default class WebUSBTransport implements Reader, Sender {
       const auth = new AuthHandshake(this);
       connectionResponse = await auth.handle(connectionResponse);
     }
-    if (connectionResponse.commandName === constants.COMMANDS.CONNECTION) {
+    if (connectionResponse.commandName === constants.COMMAND_NAME.CONNECTION) {
       this.configureForDevice(connectionResponse);
     }
   }
@@ -66,7 +66,7 @@ export default class WebUSBTransport implements Reader, Sender {
   }
 
   public configureForDevice(connectionResponse: Command): void {
-    if (connectionResponse.commandName !== constants.COMMANDS.CONNECTION) return;
+    if (connectionResponse.commandName !== constants.COMMAND_NAME.CONNECTION) return;
     this.useChecksum = connectionResponse.arg0 >= constants.VERSION.NO_CHECKSUMS_FROM;
     this.maxBytes = connectionResponse.arg1;
   }

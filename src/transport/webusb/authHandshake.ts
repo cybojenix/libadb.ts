@@ -1,5 +1,5 @@
 import AdbMessage, { Response } from './message';
-import { COMMANDS } from './constants';
+import { COMMAND_NAME } from './constants';
 import { Sender, Reader } from './interface';
 import { AuthToken, AuthRsaPublicKey, AuthSignature } from './commands/auth';
 import { Command } from './commands/interface';
@@ -83,6 +83,6 @@ export default class AuthHandshake {
   }
 
   private static isConnected(command: Command): boolean {
-    return command.commandName === COMMANDS.CONNECTION;
+    return command.commandName === COMMAND_NAME.CONNECTION;
   }
 }
