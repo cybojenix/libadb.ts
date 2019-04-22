@@ -1,6 +1,7 @@
 import AdbMessage, { Response } from './message';
 import { COMMANDS } from './constants';
 import { Sender, Reader } from './interface';
+import { AuthToken, AuthRsaPublicKey } from './commands/auth';
 
 const enum AUTH_SUBCOMMANDS {
   AUTH_TOKEN = 1,
@@ -50,23 +51,15 @@ export default class AuthHandshake {
       rsaKey.privateKey,
       authResponse.rawData.buffer,
     );
-    const signatureMessage = new AdbMessage(
-      COMMANDS.AUTH,
-      AUTH_SUBCOMMANDS.AUTH_SIGNATURE,
-      0,
-      signedToken,
-    );
-    signatureMessage.send(this.transport);
+    const signatureMessage = AdbMessage.fromCommand(new AuthToken({ data: signedToken }));
+    await signatureMessage.send(this.transport);
 
     return Response.read(this.transport);
   }
 
   private async authoriseKey(): Promise<Response> {
-    const message = new AdbMessage(
-      COMMANDS.AUTH,
-      AUTH_SUBCOMMANDS.AUTH_RSAPUBLICKEY,
-      0,
-      `${await this.getPubKeyB64()}\0`,
+    const message = AdbMessage.fromCommand(
+      new AuthRsaPublicKey({ data: `${await this.getPubKeyB64()}\0` }),
     );
     message.send(this.transport);
     return Response.read(this.transport);

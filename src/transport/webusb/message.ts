@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
 import { WIRE_COMMANDS, WIRE_TO_COMMAND } from './constants';
 import { Reader, Sender } from './interface';
+import { Command } from './commands/interface';
 
 // strictly speaking, this is Uint32Array<6>.
 type Header = DataView;
@@ -38,6 +39,12 @@ export default class Message {
     } else {
       this.data = new DataView(data);
     }
+  }
+
+  public static fromCommand(command: Command): Message {
+    return new this(
+      command.command, command.arg0, command.arg1, command.data,
+    );
   }
 
   public getHeader(useChecksum = true): BufferSource {
