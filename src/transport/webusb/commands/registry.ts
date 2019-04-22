@@ -12,6 +12,15 @@ class Registry {
 
   public register<T extends Command>(
     { commandName, arg0 }: { commandName: string; arg0?: number },
+    command: T,
+  ): T;
+
+  public register(
+    { commandName, arg0 }: { commandName: string; arg0?: number },
+  ): <T extends Command>(constructor: T) => T;
+
+  public register<T extends Command>(
+    { commandName, arg0 }: { commandName: string; arg0?: number },
     command?: T,
   ): T | (<T extends Command>(constructor: T) => T) {
     if (command) {

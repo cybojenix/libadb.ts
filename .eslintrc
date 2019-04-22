@@ -17,6 +17,7 @@
     "@typescript-eslint/indent": [
       "error",
       2
-    ]
+    ],
+    "no-dupe-class-members": "off"
   }
 }
